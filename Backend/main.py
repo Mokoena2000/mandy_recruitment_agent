@@ -13,14 +13,13 @@ supabase_url: str = os.getenv("SUPABASE_URL")
 supabase_key: str = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key)
 n8n_webhook: str = os.getenv("N8N_WEBHOOK_URL")
-frontend_url: str = os.getenv("FRONTEND_URL")
 
 app = FastAPI(title="Mandy Recruitment Assistant Api", description="Origami AI Recruitment Assistant Responsible for schedueling interviews reviewwing candidate CV and matching with job description sending and recieving emails from candidate and recuitment")
 
 # Give access to my frontend url to be able to communicate with the backend API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
