@@ -5,6 +5,7 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
+from agent import evaluate_cv
 
 #load all env 
 load_dotenv()
@@ -76,3 +77,25 @@ async def process_decision(candidate_id: str, payload: ActionUpdate, background_
     background_task.add_task(n8n_webhook, candidate_id, payload.action)
 
     return {"status": "success", "action_triggered": payload.action}
+
+# evaluate the candidate cv and update supabase
+
+class EvaluationRequest(BaseModel):
+    cv_text: str
+    job_description: str
+
+@app.post("/candidates/{candiate_id}/evaluate")
+async def trigger_evaluation(candidate_id: str, payload: EvaluationRequest):
+
+    #run agent
+    evaluation = evaluate_cv(payload.cv_text, payload.job_description)
+
+
+    supabase.table('candidates').update({
+        "ats_score": evaluation.ats_score,
+        "match_summary": evaluation.match_summary,
+        "strengths": evaluation.strenghts,
+        "weaknesses": evaluation.weaknesses
+        }).eq('id', candidate_id).execute()
+
+    return {"status": "Eveluation complete", "data": evaluation.model_dump()}
