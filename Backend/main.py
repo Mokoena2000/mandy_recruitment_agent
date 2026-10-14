@@ -9,6 +9,7 @@ from agent import evaluate_cv
 import fitz
 from fastapi import UploadFile, File, Form
 from agent import evaluate_cv
+import requests  
 
 #load all env 
 load_dotenv()
@@ -33,6 +34,13 @@ app.add_middleware(
 class StatusUpdate(BaseModel):
     status: str
 
+# Define the webhook trigger function
+def trigger_n8n_webhook(candidate_data: dict):
+    try:
+        requests.post(n8n_webhook, json=candidate_data)
+    except Exception as e:
+        print(f"n8n webhook failed: {e}")
+
 @app.get("/health")
 def health_check():
     return {"status": "Hooray Mandy is online and ready to help with some awesome recruitment"}
@@ -43,27 +51,24 @@ def get_candidates():
     response = supabase.table('candidates').select("*").execute()
     return response.data
 
-@app.patch("/candidates{candidate_id}/status")
+# Fix the missing slash in the path parameter
+@app.patch("/candidates/{candidate_id}/status")
 async def update_candidate_status(candidate_id: str, payload: StatusUpdate, background_task: BackgroundTasks):
-
-    # update table based of agent and recruitment decision and outcomes
     try:
         update_res = supabase.table('candidates').update(
             {"status": payload.status}
         ).eq('id', candidate_id).execute()
 
-    except Exception as e:
-        raise HTTPException(status_code=500, default=str(e))
+        # Actually trigger the background task if the update was successful
+        if update_res.data:
+            candidate_data = update_res.data[0]
+            background_task.add_task(trigger_n8n_webhook, candidate_data)
 
+    except Exception as e:
+        #  Fix 'default' to 'detail'
+        raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": "Status updated successfully", "data": update_res.data}
-
-
-    #n8n workflow webhook connection, responsible to connect to n8n for emails
-    async def trigger_n8n_webhook(candidate_id: str, status: str):
-        async with httpx.AsyncClient() as client:
-            payload = {"candidate_id": candidate_id, "status": status}
-            await client.post(n8n_webhook, json=payload)
 
 # update the candidates application 
 class ActionUpdate(BaseModel):
@@ -97,7 +102,7 @@ async def trigger_evaluation(candidate_id: str, payload: EvaluationRequest):
     supabase.table('candidates').update({
         "ats_score": evaluation.ats_score,
         "match_summary": evaluation.match_summary,
-        "strengths": evaluation.strenghts,
+        "strenghts": evaluation.strenghts,
         "weaknesses": evaluation.weaknesses
         }).eq('id', candidate_id).execute()
 
