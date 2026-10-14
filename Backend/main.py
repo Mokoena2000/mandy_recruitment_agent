@@ -6,10 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
 from agent import evaluate_cv
-import fitz
 from fastapi import UploadFile, File, Form
 from agent import evaluate_cv
 import requests  
+import io
+from pypdf import PdfReader
 
 #load all env 
 load_dotenv()
@@ -129,12 +130,10 @@ async def submit_application(
     cv_file: UploadFile = File(...)
 ):
 
-    # read pdf files
+    # read cv
     file_bytes = await cv_file.read()
-
-    # extract the text from the pdf for agent to read
-    doc = fitz.open(stream=file_bytes, filetype="pdf")
-    cv_text = "".join(page.get_text() for page in doc)
+    reader = PdfReader(io.BytesIO(file_bytes))
+    cv_text = "".join(page.extract_text() or "" for page in reader.pages)
 
     # read the job description
     with open("job_descriptions.md", "r") as file:
