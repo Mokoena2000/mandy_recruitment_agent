@@ -64,3 +64,19 @@ async def update_candidate_status(candidate_id: str, payload: StatusUpdate, back
             payload = {"candidate_id": candidate_id, "status": status}
             await client.post(n8n_webhook, json=payload)
 
+# update the candidates application 
+
+class ActionUpdate(BaseModel):
+    action: str
+
+@app.post("/candidates/{candidate_id}/decision")
+async def process_decision(candidate_id: str, payload: ActionUpdate, background_task: BackgroundTasks):
+    new_status = 'unsuccessfull' if payload.action == 'reject' else 'interviewing'
+   
+   # Update the status in supabase
+    supabase.table('candidates').update({"status": new_status}).eq('id', candidate_id).execute()
+
+    # trigger n8n webhook for email delivery
+    background_task.add_task(n8n_webhook, candidate_id, payload.action)
+
+    return {"status": "success", "action_triggered": payload.action}
