@@ -15,7 +15,7 @@ interface Candidate {
   weaknesses?: string[];
 }
 
-const API_BASE_URL = 'https://mandybackend-kappa.vercel.app';
+const API_BASE_URL = "https://mandybackend-kappa.vercel.app";
 
 function App() {
   const [currentView, setCurrentView] = useState<'recruiter' | 'applicant'>('recruiter');
