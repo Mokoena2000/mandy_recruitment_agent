@@ -25,7 +25,7 @@ app = FastAPI(title="Mandy Recruitment Assistant Api", description="Origami AI R
 # Give access to my frontend url to be able to communicate with the backend API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["https://mandyfrontend.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,16 +61,16 @@ def get_candidates():
 
 # Fix the missing slash in the path parameter
 @app.patch("/candidates/{candidate_id}/status")
-async def update_candidate_status(candidate_id: str, payload: StatusUpdate, background_task: BackgroundTasks):
+async def update_candidate_status(candidate_id: str, payload: StatusUpdate):
     try:
         update_res = supabase.table('candidates').update(
             {"status": payload.status}
         ).eq('id', candidate_id).execute()
 
-        # Actually trigger the background task if the update was successful
+        # Actually trigger the task if the update was successful
         if update_res.data:
             candidate_data = update_res.data[0]
-            background_task.add_task(trigger_n8n_webhook, candidate_data)
+            trigger_n8n_webhook, candidate_data
 
     except Exception as e:
         #  Fix 'default' to 'detail'
@@ -90,7 +90,7 @@ async def process_decision(candidate_id: str, payload: ActionUpdate, background_
     supabase.table('candidates').update({"status": new_status}).eq('id', candidate_id).execute()
 
     # trigger n8n webhook for email delivery
-    background_task.add_task(n8n_webhook, candidate_id, payload.action)
+    n8n_webhook, candidate_id, payload.action
 
     return {"status": "success", "action_triggered": payload.action}
 
@@ -119,7 +119,6 @@ async def trigger_evaluation(candidate_id: str, payload: EvaluationRequest):
 # cv upload endpoint
 @app.post("/apply")
 async def submit_application(
-    background_tasks: BackgroundTasks,
     name: str = Form(...),
     email: str = Form(...),
     role: str = Form(...),
@@ -154,7 +153,7 @@ async def submit_application(
     # ping recruitment after cv upload
     if result.data:
         candidate_data = result.data[0]
-        background_tasks.add_task(ping_recruiter_webhook, candidate_data)
+        ping_recruiter_webhook, candidate_data
 
     return {"message": "Application evaluated and saved!", "candidate": result.data }
 
