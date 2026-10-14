@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
 from agent import evaluate_cv
+import fitz
+from fastapi import UploadFile, File, Form
+from agent import evaluate_cv
 
 #load all env 
 load_dotenv()
@@ -99,3 +102,43 @@ async def trigger_evaluation(candidate_id: str, payload: EvaluationRequest):
         }).eq('id', candidate_id).execute()
 
     return {"status": "Eveluation complete", "data": evaluation.model_dump()}
+
+# cv upload endpoint
+@app.post("/apply")
+async def submit_application(
+    name: str = Form(...),
+    email: str = Form(...),
+    role: str = Form(...),
+    cv_file: UploadFile = File(...)
+):
+
+    # read pdf files
+    file_bytes = await cv_file.read()
+
+    # extract the text from the pdf for agent to read
+    doc = fitz.open(stream=file_bytes, filetype="pdf")
+    cv_text = "".json(page.get_text() for page in doc)
+
+    # read the job description
+    with open("job_description.md", "r") as file:
+        description = file.read()
+
+    evaluation = evaluate_cv(cv_text, description)
+
+    # save candidate info to supabase
+    result = supabase.table('candidates').insert({
+        "name": name,
+        "email": email,
+        "role": role,
+        "status": "pending",
+        "ats_score": evaluation.ats_score,
+        "match_summary": evaluation.match_summary,
+        "strenghts": evaluation.strenghts,
+        "weaknesses": evaluation.weaknesses
+    }).execute()
+
+    return {"message": "Application evaluated and saved!", "candidate": result.data }
+
+
+
+    
