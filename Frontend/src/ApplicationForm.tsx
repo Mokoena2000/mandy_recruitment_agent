@@ -29,7 +29,7 @@ export default function ApplicantForm() {
       await axios.post(`${API_BASE_URL}/apply`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setSuccessMsg('Application submitted! The AI is reviewing your CV.');
+      setSuccessMsg('Application submitted!, Thank you for choosing Origami we will reach out to you soon.');
       setName(''); setEmail(''); setFile(null);
     } catch (error) {
       console.error('Upload failed:', error);

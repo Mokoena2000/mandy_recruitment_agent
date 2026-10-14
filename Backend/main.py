@@ -120,10 +120,10 @@ async def submit_application(
     cv_text = "".join(page.get_text() for page in doc)
 
     # read the job description
-    with open("job_description.md", "r") as file:
+    with open("job_descriptions.md", "r") as file:
         description = file.read()
 
-    evaluation = evaluate_cv(cv_text, description)
+    evaluation = evaluate_cv(role, cv_text, description)
 
     # save candidate info to supabase
     result = supabase.table('candidates').insert({

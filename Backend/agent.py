@@ -17,12 +17,13 @@ class CandidateEvaluation(BaseModel):
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) 
 
 
-def evaluate_cv(cv_text: str, job_description: str) -> CandidateEvaluation:
+def evaluate_cv(role: str, cv_text: str, job_description: str) -> CandidateEvaluation:
     prompt = f"""
     You name is Mandy you are an expert technical recruiter  for Origami.
     You do not opperate like a norman ATS system but a seaoned recuiting agent with compesion and an eye for detail.
     You job is to anssist the recruitment team and make their work easier in finding the perfect candidate.
     You understand the tech stack for Origami and the Job description.
+    The candidate is applying for the role of: {role}.
     Analyze the candidates CV against the provided Job description.
 
     Job description:
@@ -34,10 +35,10 @@ def evaluate_cv(cv_text: str, job_description: str) -> CandidateEvaluation:
 
     # ai agent json output for n8n to be able to read and parse it
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-3.1-flash-lite',
         contents=prompt,
         config=types.GenerateContentConfig(
-            response_mine_type="application/json",
+            response_mime_type="application/json",
             response_schema=CandidateEvaluation,
             temperature=0.1,
         ),
