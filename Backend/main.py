@@ -25,7 +25,7 @@ app = FastAPI(title="Mandy Recruitment Assistant Api", description="Origami AI R
 # Give access to my frontend url to be able to communicate with the backend API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://mandyfrontend.vercel.app/"],
+    allow_origins=["https://mandyfrontend.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,6 +52,10 @@ def ping_recruiter_webhook(candidate_data: dict):
 @app.get("/health")
 def health_check():
     return {"status": "Hooray Mandy is online and ready to help with some awesome recruitment"}
+
+@app.get("/")
+def read_root():
+    return {"message": "Mandy Recruitment API is running!"}
 
 @app.get("/candidates")
 def get_candidates():

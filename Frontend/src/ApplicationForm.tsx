@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://mandybackend-kappa.vercel.app/';
+const API_BASE_URL = 'https://mandybackend-kappa.vercel.app';
 
 export default function ApplicantForm() {
   const [name, setName] = useState('');
