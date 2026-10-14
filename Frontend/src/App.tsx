@@ -11,7 +11,7 @@ interface Candidate {
   status: string;
   ats_score?: number;
   match_summary?: string;
-  strengths?: string[];
+  strenghts?: string[];
   weaknesses?: string[];
 }
 
@@ -83,7 +83,7 @@ function App() {
         <div className="max-w-5xl mx-auto">
           <header className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Origami Recruitment Assistant</h1>
-            <p className="text-gray-500 mt-2">Welcome back, Kayleigh. Here are your latest AI-scored candidates.</p>
+            <p className="text-gray-500 mt-2">Welcome back, Recruitment. Here are your latest AI-scored candidates.</p>
           </header>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -168,10 +168,10 @@ function App() {
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <h4 className="font-bold text-green-700 mb-2">Strengths</h4>
+                                  <h4 className="font-bold text-green-700 mb-2">Strenghts</h4>
                                   <ul className="list-disc pl-4 text-sm text-gray-700 space-y-1">
-                                    {candidate.strengths?.map((strength, i) => (
-                                      <li key={i}>{strength}</li>
+                                    {candidate.strenghts?.map((strenght, i) => (
+                                      <li key={i}>{strenght}</li>
                                     )) || <li>None recorded</li>}
                                   </ul>
                                 </div>

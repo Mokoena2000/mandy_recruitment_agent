@@ -18,6 +18,7 @@ supabase_url: str = os.getenv("SUPABASE_URL")
 supabase_key: str = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key)
 n8n_webhook: str = os.getenv("N8N_WEBHOOK_URL")
+webhook_url: str = os.getenv("WEBHOOK_URL")
 
 app = FastAPI(title="Mandy Recruitment Assistant Api", description="Origami AI Recruitment Assistant Responsible for schedueling interviews reviewwing candidate CV and matching with job description sending and recieving emails from candidate and recuitment")
 
@@ -40,6 +41,13 @@ def trigger_n8n_webhook(candidate_data: dict):
         requests.post(n8n_webhook, json=candidate_data)
     except Exception as e:
         print(f"n8n webhook failed: {e}")
+
+def ping_recruiter_webhook(candidate_data: dict):
+    try:
+        requests.post(webhook_url, json=candidate_data)
+        print("Recruiter ping sent!")
+    except Exception as e:
+        print(f"Recruiter ping failed: {e}")
 
 @app.get("/health")
 def health_check():
@@ -111,6 +119,7 @@ async def trigger_evaluation(candidate_id: str, payload: EvaluationRequest):
 # cv upload endpoint
 @app.post("/apply")
 async def submit_application(
+    background_tasks: BackgroundTasks,
     name: str = Form(...),
     email: str = Form(...),
     role: str = Form(...),
@@ -141,6 +150,11 @@ async def submit_application(
         "strenghts": evaluation.strenghts,
         "weaknesses": evaluation.weaknesses
     }).execute()
+
+    # ping recruitment after cv upload
+    if result.data:
+        candidate_data = result.data[0]
+        background_tasks.add_task(ping_recruiter_webhook, candidate_data)
 
     return {"message": "Application evaluated and saved!", "candidate": result.data }
 
