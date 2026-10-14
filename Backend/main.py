@@ -117,7 +117,7 @@ async def submit_application(
 
     # extract the text from the pdf for agent to read
     doc = fitz.open(stream=file_bytes, filetype="pdf")
-    cv_text = "".json(page.get_text() for page in doc)
+    cv_text = "".join(page.get_text() for page in doc)
 
     # read the job description
     with open("job_description.md", "r") as file:
