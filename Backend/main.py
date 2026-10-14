@@ -26,7 +26,6 @@ app.add_middleware(
 )
 
 # Pydantic schemas for data validation and api endpoint 
-
 class StatusUpdate(BaseModel):
     status: str
 
@@ -44,7 +43,6 @@ def get_candidates():
 async def update_candidate_status(candidate_id: str, payload: StatusUpdate, background_task: BackgroundTasks):
 
     # update table based of agent and recruitment decision and outcomes
-
     try:
         update_res = supabase.table('candidates').update(
             {"status": payload.status}
@@ -58,14 +56,12 @@ async def update_candidate_status(candidate_id: str, payload: StatusUpdate, back
 
 
     #n8n workflow webhook connection, responsible to connect to n8n for emails
-
     async def trigger_n8n_webhook(candidate_id: str, status: str):
         async with httpx.AsyncClient() as client:
             payload = {"candidate_id": candidate_id, "status": status}
             await client.post(n8n_webhook, json=payload)
 
 # update the candidates application 
-
 class ActionUpdate(BaseModel):
     action: str
 
